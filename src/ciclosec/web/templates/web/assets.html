@@ -1,0 +1,33 @@
+{% extends "web/base.html" %}
+{% block title %}Activos · CicloSec{% endblock %}
+{% block content %}
+  {% url 'asset-create' as create_url %}
+  {% include "web/partials/page_heading.html" with eyebrow="Inventario" title="Activos" description="Gestiona los repositorios e imágenes autorizados para el análisis local." action_url=create_url action_label="+ Registrar activo" only %}
+  <section class="panel data-panel">
+    <form class="filter-form" method="get" role="search">
+      {% include "web/partials/form_fields.html" with form=form only %}
+      <button class="button button--primary" type="submit">Buscar</button>
+      <a class="button button--quiet" href="{% url 'assets' %}">Limpiar</a>
+    </form>
+    <p class="panel-subtitle">{{ page.paginator.count }} activos encontrados.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Activo</th><th>Tipo</th><th>Entorno</th><th>Exposición</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          {% for asset in page %}
+            <tr>
+              <td class="asset-name"><a href="{% url 'web-asset-detail' asset.pk %}">{{ asset.name }}</a></td>
+              <td>{{ asset.get_kind_display }}</td><td>{{ asset.get_environment_display }}</td>
+              <td>{{ asset.get_exposure_display }}</td>
+              <td>{% if asset.enabled %}<span class="status status--current">Habilitado</span>{% else %}<span class="status status--disabled">Deshabilitado</span>{% endif %}</td>
+              <td><a class="table-link" href="{% url 'web-asset-detail' asset.pk %}">Ver detalle →</a></td>
+            </tr>
+          {% empty %}
+            <tr><td class="empty-state" colspan="6">No hay activos que coincidan con la búsqueda.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "web/partials/pagination.html" with pagination=pagination label="Paginación de activos" only %}
+  </section>
+{% endblock %}

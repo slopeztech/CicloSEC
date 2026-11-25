@@ -1,0 +1,11 @@
+<ul class="insight-list">
+  {% for cve in cves %}
+    <li>
+      {% if related %}<a href="{% url 'web-finding-detail' cve.finding_id %}">{{ cve.identifier }}</a>{% else %}<strong>{{ cve.identifier }}</strong>{% endif %}
+      <span>Publicado: <time datetime="{{ cve.published_at|date:'c' }}">{{ cve.published_at|date:"d/m/Y H:i" }}</time></span>
+      <span>Registro asociado: {{ cve.provider_label|default:"no identificado" }} · Fuente {{ cve.source_status|lower }}{% if cve.last_success_at %} · Última sincronización: <time datetime="{{ cve.last_success_at|date:'c' }}">{{ cve.last_success_at|date:"d/m/Y H:i" }}</time>{% endif %}</span>
+    </li>
+  {% empty %}
+    <li class="empty-state">No hay CVE con fecha de publicación disponible para este grupo.</li>
+  {% endfor %}
+</ul>

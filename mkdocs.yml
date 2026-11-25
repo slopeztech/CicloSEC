@@ -1,0 +1,13 @@
+site_name: CicloSec
+site_description: Local-first security monitoring and vulnerability management.
+docs_dir: docs
+nav:
+  - Home: index.md
+  - Implementation: IMPLEMENTATION.md
+  - Roadmap: roadmap.md
+  - Architecture: ARCHITECTURE.md
+  - Development: DEVELOPMENT.md
+  - API: API.md
+  - MCP: MCP.md
+  - Decisions:
+      - Modular monolith: ADR/0001-modular-monolith.md

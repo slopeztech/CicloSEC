@@ -1,0 +1,66 @@
+{% extends "web/base.html" %}
+{% block title %}Escaneo #{{ scan.pk }} · CicloSec{% endblock %}
+{% block content %}
+  <a class="back-link" href="{% url 'history' %}">← Historial de escaneos</a>
+  {% include "web/partials/page_heading.html" with eyebrow="Detalle del escaneo" title=scan.asset.name description="Estado y cobertura de esta ejecución." only %}
+  <section class="panel">
+    <h2>Escaneo #{{ scan.pk }}</h2>
+    <dl class="detail-list">
+      <div><dt>Activo</dt><dd><a href="{% url 'web-asset-detail' scan.asset_id %}">{{ scan.asset.name }}</a></dd></div>
+      <div><dt>Estado</dt><dd><span class="status status--{{ scan.status }}">{% include "web/partials/scan_status.html" with status=scan.status only %}</span></dd></div>
+      <div><dt>Herramienta</dt><dd>{{ scan.scanner_name }}</dd></div>
+      <div><dt>Versión</dt><dd>{{ scan.scanner_version|default:"No disponible" }}</dd></div>
+      {% if scan.metadata.repository_source %}
+        <div><dt>Repositorio analizado</dt><dd>{{ scan.metadata.repository_source.owner }}/{{ scan.metadata.repository_source.repository }}@{{ scan.metadata.repository_source.ref }}</dd></div>
+      {% endif %}
+      <div><dt>Solicitado</dt><dd>{{ scan.created_at|date:"DATETIME_FORMAT" }}</dd></div>
+      <div><dt>Inicio</dt><dd>{{ scan.started_at|date:"DATETIME_FORMAT"|default:"—" }}</dd></div>
+      <div><dt>Finalizado</dt><dd>{{ scan.finished_at|date:"DATETIME_FORMAT"|default:"—" }}</dd></div>
+      <div><dt>Alertas</dt><dd>{{ scan.warnings|length }}{% if scan.error_summary %} · La ejecución registró un error{% endif %}</dd></div>
+      <div><dt>Hallazgos</dt><dd>{{ scan.findings.count }}</dd></div>
+    </dl>
+    {% if scan.metadata.source_results %}
+      <h3>Fuentes de resultados</h3>
+      <ul class="field-help">
+        {% for source, result in scan.metadata.source_results.items %}
+          <li>
+            {% if source == "sbom" %}SBOM{% elif source == "osv_scanner" %}OSV-Scanner{% elif source == "trivy" %}Trivy{% elif source == "github_dependabot" %}GitHub Dependabot{% else %}{{ source }}{% endif %}:
+            {% if result.status == "available" %}
+              disponible{% if result.finding_count != None %} · {{ result.finding_count }} hallazgos{% endif %}
+              {% if source == "osv_scanner" or source == "trivy" %}{% if scan.metadata.scanner_database_freshness == "unverified" %} · base local, fecha sin verificar{% endif %}{% endif %}
+            {% else %}
+              no disponible
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if scan.metadata.repository_source_changed %}
+      <p class="field-help">La fuente cambió durante el escaneo; los resultados corresponden al repositorio indicado arriba.</p>
+    {% endif %}
+    {% if dispatch_uncertain %}
+      <p class="field-help">No se pudo confirmar el envío a la cola. Revisa el estado del worker antes de actuar; el trabajo podría haberse recibido.</p>
+    {% endif %}
+    {% if scan.status == 'running' %}
+      <p class="field-help">El estado en curso no confirma que el worker siga activo. Comprueba el worker y sus procesos antes de actuar; no modifiques la base de datos ni reintentes a ciegas. La recuperación de trabajos iniciados requiere mantenimiento.</p>
+    {% endif %}
+    {% if scan.status == 'cancelled' and scan.metadata.cancelled_by_user_id %}
+      <p class="field-help">El escaneo se canceló antes de iniciarse. Los mensajes pendientes se descartarán cuando los reciban los workers actualizados.</p>
+    {% endif %}
+    {% if scan.status == 'queued' and not scan.started_at %}
+      <form method="post" action="{% url 'cancel-queued-scan' scan.pk %}">
+        {% csrf_token %}
+        <p class="field-help">Solo se puede cancelar antes de que el worker inicie el escaneo. No se elimina el mensaje de la cola ni se vuelve a iniciar automáticamente.</p>
+        <label><input type="checkbox" name="confirm" value="true" required> Confirmo que deseo cancelar este escaneo en cola.</label>
+        <button class="button button--secondary" type="submit">Cancelar escaneo en cola</button>
+      </form>
+    {% endif %}
+    {% if scan.status == 'partial' or scan.status == 'failed' %}
+      <p class="field-help">La ejecución no tiene cobertura completa.</p>
+      <ul class="field-help">
+        {% for message in diagnostic_messages %}<li>{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    <div class="form-actions"><a class="button button--secondary" href="{% url 'sbom' %}?asset={{ scan.asset_id }}&amp;scan_id={{ scan.pk }}">Ver SBOM de este escaneo</a><a class="button button--quiet" href="{% url 'findings' %}?scan_id={{ scan.pk }}">Ver hallazgos de este escaneo</a></div>
+  </section>
+{% endblock %}

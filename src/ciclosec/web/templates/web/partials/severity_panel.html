@@ -1,0 +1,26 @@
+<section class="panel severity-panel" aria-labelledby="severity-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Riesgo detectado</p>
+      <h2 id="severity-title">Hallazgos por severidad</h2>
+    </div>
+    <a class="text-link" href="{% url 'findings' %}">Ver hallazgos <span aria-hidden="true">→</span></a>
+  </div>
+  <p class="field-help">Incluye hallazgos históricos, que no necesariamente siguen vigentes.</p>
+  <div class="severity-list">
+    {% for row in severity_rows %}
+      <div class="severity-row severity-row--{{ row.key }}">
+        <span class="severity-row__label">{{ row.label }}</span>
+        <span
+          class="severity-track"
+          role="img"
+          aria-label="{{ row.count }} hallazgo{{ row.count|pluralize:'s' }}, {{ row.percentage }} por ciento de la severidad más alta"
+        >
+          <span class="severity-track__fill" style="--bar-width: {{ row.percentage }}%"></span>
+        </span>
+        <strong>{{ row.count }}</strong>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="panel-footnote">Distribución de vulnerabilidades según los filtros activos.</p>
+</section>

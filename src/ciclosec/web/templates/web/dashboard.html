@@ -1,0 +1,27 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}Panel · CicloSec{% endblock %}
+{% block content %}
+  {% if filter_form.errors %}
+    <section class="notice notice--error" role="alert">
+      <h1>Filtros no válidos</h1>
+      {{ filter_form.errors }}
+    </section>
+  {% endif %}
+
+  {% if summary %}
+    <div class="dashboard-live-status">
+      <p id="dashboard-live-sync" class="field-help" aria-live="off">
+        Actualización automática activa; se comprueba cada 10 segundos.
+      </p>
+      <p id="dashboard-live-feedback" class="notice notice--info" role="status" aria-live="polite" hidden></p>
+    </div>
+    {% include "web/partials/filters_panel.html" %}
+    {% include "web/partials/dashboard_live_content.html" %}
+  {% endif %}
+{% endblock %}
+{% block scripts %}
+  {% if summary %}
+    <script src="{% static 'web/dashboard-live.js' %}" defer></script>
+  {% endif %}
+{% endblock %}

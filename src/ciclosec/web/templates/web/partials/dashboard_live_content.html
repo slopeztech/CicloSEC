@@ -1,0 +1,31 @@
+<div id="dashboard-live-content">
+  {% include "web/partials/overview.html" %}
+  {% include "web/partials/dashboard_insights.html" %}
+  <section aria-labelledby="coverage-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Estado de los activos</p>
+        <h2 id="coverage-title">Cobertura de escaneos</h2>
+      </div>
+      <p class="scope-note">
+        Solo incluye activos registrados y habilitados; no representa la
+        cobertura de toda la infraestructura.
+      </p>
+    </div>
+    <div class="metric-grid">
+      {% for metric in coverage_metric_cards %}
+        {% include "web/partials/metric_card.html" with metric=metric only %}
+      {% endfor %}
+    </div>
+  </section>
+  <div class="insight-grid">
+    {% include "web/partials/severity_panel.html" %}
+    {% include "web/partials/api_access_panel.html" %}
+  </div>
+  {% include "web/partials/assets_panel.html" %}
+  <div class="activity-grid">
+    {% include "web/partials/scan_activity_panel.html" %}
+    {% include "web/partials/sources_panel.html" %}
+  </div>
+  {% include "web/partials/findings_panel.html" %}
+</div>

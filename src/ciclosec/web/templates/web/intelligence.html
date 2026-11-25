@@ -1,0 +1,53 @@
+{% extends "web/base.html" %}
+{% block title %}Inteligencia · CicloSec{% endblock %}
+{% block content %}
+  {% include "web/partials/page_heading.html" with eyebrow="Fuentes externas" title="Inteligencia" description="Supervisa la frescura y las últimas sincronizaciones de los proveedores." only %}
+  {% if user.is_staff %}
+    <section class="panel">
+      <h2>Actualizar proveedores</h2>
+      <p class="field-help">La actualización consulta fuentes externas y puede tardar. Enviar una solicitud no confirma que haya terminado.</p>
+      <form method="post" action="{% url 'intelligence-update' %}">
+        {% csrf_token %}
+        <label><input type="checkbox" name="confirm" value="true" required> Confirmo la consulta a los proveedores externos.</label>
+        <button class="button button--primary" type="submit">Actualizar todos</button>
+      </form>
+      {% if manual_sync %}
+        <h3>Última solicitud manual por proveedor</h3>
+        <ul class="activity-list">
+          {% for item in manual_sync.providers %}
+            <li class="activity-item">{{ item.provider }}:
+              {% if item.status == 'never_requested' %}Sin solicitud{% elif item.status == 'dispatching' %}Envío pendiente{% elif item.status == 'queued' %}En cola{% elif item.status == 'uncertain' %}Envío sin confirmar{% elif item.status == 'running' %}En ejecución{% elif item.status == 'retrying' %}Reintentando{% elif item.status == 'succeeded' %}Completada{% elif item.status == 'partial' %}Parcial{% elif item.status == 'failed' %}Fallida{% else %}Estado no disponible{% endif %}
+              {% if item.error == 'followup_delivery_pending' %} (envío posterior pendiente){% elif item.error == 'followup_delivery_uncertain' %} (envío posterior sin confirmar){% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  {% endif %}
+  <section class="panel data-panel">
+    <h2>Estado de proveedores</h2>
+    <p class="panel-subtitle">Un estado actualizado no implica cobertura histórica completa. Una fuente sin éxito completo puede aparecer como no disponible aunque haya procesado datos parciales; EPSS conserva cobertura no verificada.</p>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Proveedor</th><th>Estado</th><th>Último intento</th><th>Último éxito</th><th>Fecha de la fuente</th></tr></thead>
+      <tbody>{% for source in sources %}<tr>
+        <td class="asset-name">{{ source.label }}</td>
+        <td><span class="status status--{{ source.freshness.status }}">
+          {% if source.freshness.status == 'current' %}Actualizada{% elif source.freshness.status == 'stale' %}Desactualizada{% elif source.freshness.status == 'unavailable' %}No disponible{% else %}Desconocida{% endif %}
+        </span></td>
+        <td>{{ source.freshness.last_attempt_at|date:"DATETIME_FORMAT"|default:"—" }}</td>
+        <td>{{ source.freshness.last_success_at|date:"DATETIME_FORMAT"|default:"—" }}</td>
+        <td>{{ source.freshness.source_updated_at|date:"DATETIME_FORMAT"|default:"—" }}</td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  <section class="panel data-panel">
+    <h2>Sincronizaciones recientes</h2>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Proveedor</th><th>Estado</th><th>Inicio</th><th>Procesados</th><th>Fallidos</th></tr></thead>
+      <tbody>{% for run in runs %}<tr>
+        <td>{{ run.get_provider_display }}</td><td><span class="status status--{{ run.status }}">{{ run.get_status_display }}</span></td>
+        <td>{{ run.started_at|date:"DATETIME_FORMAT" }}</td><td>{{ run.records_processed }}</td><td>{{ run.records_failed }}</td>
+      </tr>{% empty %}<tr><td class="empty-state" colspan="5">Todavía no hay sincronizaciones registradas.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+{% endblock %}

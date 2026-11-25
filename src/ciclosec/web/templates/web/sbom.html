@@ -1,0 +1,35 @@
+{% extends "web/base.html" %}
+{% block title %}SBOM · CicloSec{% endblock %}
+{% block content %}
+  {% include "web/partials/page_heading.html" with eyebrow="Inventario de software" title="SBOM" description="Consulta los componentes normalizados del último inventario o de un escaneo concreto." only %}
+  <section class="panel data-panel">
+    <form class="filter-form" method="get">
+      {% include "web/partials/form_fields.html" with form=form only %}
+      <button class="button button--primary" type="submit">Consultar inventario</button>
+    </form>
+    {% if result %}
+      {% if result.sbom_format %}
+        <p class="panel-subtitle">{{ result.sbom_format|upper }} · Escaneo #{{ result.scan_run_id }} · {{ result.total }} componentes · Generado {{ result.sbom_generated_at|date:"DATETIME_FORMAT" }}</p>
+        {% if result.source_status == 'matched' %}
+          <p class="field-help">La referencia coincide con la fuente registrada; el contenido de una rama o etiqueta puede haber cambiado.</p>
+        {% elif result.source_status == 'changed' %}
+          <p class="field-help">El SBOM corresponde a una fuente diferente o ausente. Se conserva como evidencia histórica.</p>
+        {% elif result.source_status == 'unknown' %}
+          <p class="field-help">No se puede verificar la fuente de este SBOM. Se conserva como evidencia histórica.</p>
+        {% endif %}
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Componente</th><th>Versión</th><th>Ecosistema</th><th>Relación</th><th>Alcance</th></tr></thead>
+          <tbody>{% for component in result.items %}<tr>
+            <td class="asset-name">{{ component.name }}</td><td>{{ component.version|default:"Desconocida" }}</td>
+            <td>{{ component.ecosystem }}</td><td>{{ component.relationship }}</td><td>{{ component.scope|default:"—" }}</td>
+          </tr>{% empty %}<tr><td class="empty-state" colspan="5">El SBOM existe, pero no contiene componentes. Esto no demuestra que el activo no tenga dependencias.</td></tr>{% endfor %}</tbody>
+        </table></div>
+        {% include "web/partials/pagination.html" with pagination=pagination label="Paginación del SBOM" only %}
+      {% else %}
+        <p class="empty-state">No existe un SBOM para la selección indicada.</p>
+      {% endif %}
+    {% else %}
+      <p class="empty-state">Selecciona un activo para consultar su inventario.</p>
+    {% endif %}
+  </section>
+{% endblock %}

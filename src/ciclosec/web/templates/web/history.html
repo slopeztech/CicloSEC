@@ -1,0 +1,35 @@
+{% extends "web/base.html" %}
+{% block title %}Historial · CicloSec{% endblock %}
+{% block content %}
+  {% include "web/partials/page_heading.html" with eyebrow="Actividad" title="Historial de escaneos" description="Consulta el estado y los resultados de cada ejecución, incluidas las parciales o fallidas." only %}
+  <section class="panel">
+    <h2>Capacidad global de escaneos</h2>
+    <dl class="detail-list">
+      <div><dt>En cola</dt><dd>{{ queue_status.queued_count }} / {{ queue_status.queued_limit }}</dd></div>
+      <div><dt>En ejecución</dt><dd>{{ queue_status.running_count }} / {{ queue_status.running_limit }}</dd></div>
+      <div><dt>Envíos sin confirmar</dt><dd>{{ queue_status.delivery_uncertain_count }}</dd></div>
+    </dl>
+    {% if queue_status.queue_full %}<p class="field-help">La cola de escaneos está llena; no se aceptarán nuevas solicitudes hasta liberar capacidad.</p>{% endif %}
+    <p class="field-help">Cuenta registros globales, incluso con filtros. No confirma el estado del broker ni del worker; los valores pueden cambiar.</p>
+    <p class="field-help">Tras una interrupción de Redis, revisa todos los trabajos en cola, incluso los que no tengan aviso: el mensaje podría haberse perdido.</p>
+  </section>
+  <section class="panel data-panel">
+    <form class="filter-form" method="get">
+      {% include "web/partials/form_fields.html" with form=form only %}
+      <button class="button button--primary" type="submit">Filtrar</button>
+      <a class="button button--quiet" href="{% url 'history' %}">Limpiar</a>
+    </form>
+    <p class="panel-subtitle">{{ page.paginator.count }} escaneos registrados.</p>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Escaneo</th><th>Activo</th><th>Estado</th><th>Solicitado</th><th>Inicio</th><th>Finalización</th><th>Incidencias</th></tr></thead>
+      <tbody>{% for scan in page %}<tr>
+        <td><a href="{% url 'web-scan-detail' scan.pk %}">#{{ scan.pk }}</a></td>
+        <td><a href="{% url 'web-asset-detail' scan.asset_id %}">{{ scan.asset.name }}</a></td>
+        <td><span class="status status--{{ scan.status }}">{% include "web/partials/scan_status.html" with status=scan.status only %}</span></td>
+        <td>{{ scan.created_at|date:"DATETIME_FORMAT" }}</td><td>{{ scan.started_at|date:"DATETIME_FORMAT"|default:"—" }}</td><td>{{ scan.finished_at|date:"DATETIME_FORMAT"|default:"—" }}</td>
+        <td>{{ scan.warnings|length }} alertas{% if scan.error_summary %} · Con error{% endif %}{% if scan.delivery_uncertain %} · Envío sin confirmar{% endif %}</td>
+      </tr>{% empty %}<tr><td class="empty-state" colspan="7">Todavía no hay escaneos.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "web/partials/pagination.html" with pagination=pagination label="Paginación del historial" only %}
+  </section>
+{% endblock %}

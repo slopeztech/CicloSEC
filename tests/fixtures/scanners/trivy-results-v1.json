@@ -1,0 +1,33 @@
+{
+  "Results": [
+    {
+      "Target": "requirements.lock",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2026-0001",
+          "PkgName": "Flask",
+          "InstalledVersion": "2.2.0",
+          "FixedVersion": "2.2.5",
+          "Severity": "HIGH",
+          "Title": "Example package vulnerability",
+          "PkgIdentifier": {
+            "PURL": "pkg:pypi/flask@2.2.0"
+          }
+        }
+      ],
+      "Secrets": [
+        {
+          "RuleID": "generic-api-key",
+          "Category": "API Key",
+          "Severity": "HIGH",
+          "Title": "Generic API key",
+          "StartLine": 12,
+          "Match": "SECRET_VALUE_SENTINEL_MUST_NOT_BE_PERSISTED",
+          "Code": {
+            "Lines": ["line containing SECRET_VALUE_SENTINEL_MUST_NOT_BE_PERSISTED"]
+          }
+        }
+      ]
+    }
+  ]
+}

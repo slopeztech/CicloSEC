@@ -1,0 +1,27 @@
+<section class="panel sources-panel" aria-labelledby="sources-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Inteligencia</p>
+      <h2 id="sources-title">Frescura de fuentes</h2>
+    </div>
+  </div>
+  <ul class="source-list">
+    {% for source in source_rows %}
+      <li class="source-item">
+        <span class="source-item__name">{{ source.label }}</span>
+        <span class="status status--{{ source.status }}">
+          <span class="status-dot"></span>{{ source.status_label }}
+        </span>
+        {% if source.last_success_at %}
+          <time datetime="{{ source.last_success_at|date:'c' }}">
+            {{ source.last_success_at|date:"d M, H:i" }}
+          </time>
+        {% else %}
+          <span class="muted">—</span>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li class="empty-state">No hay proveedores configurados.</li>
+    {% endfor %}
+  </ul>
+</section>

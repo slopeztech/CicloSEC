@@ -1,0 +1,39 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>{% block title %}CicloSec{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'web/dashboard.css' %}">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+    {% include "web/partials/icon_sprite.html" %}
+    <div class="app-shell">
+      {% include "web/partials/sidebar.html" %}
+      <div class="dashboard-main">
+        <header class="topbar">
+          <a class="quick-filter" href="{% url 'findings' %}">
+            <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+            <span>Buscar hallazgos...</span>
+          </a>
+          <div class="topbar-actions">
+            <a class="icon-button" href="{% url 'api-dashboard' %}" aria-label="Abrir resumen JSON" title="Resumen JSON">
+              <svg class="icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+            </a>
+          </div>
+        </header>
+        <main class="page-content" id="main-content" tabindex="-1">
+          {% for message in messages %}
+            <div class="notice notice--{{ message.tags }}" role="status">{{ message }}</div>
+          {% endfor %}
+          {% block content %}{% endblock %}
+          <footer class="page-footer">CicloSec · Análisis local de activos autorizados</footer>
+        </main>
+      </div>
+    </div>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

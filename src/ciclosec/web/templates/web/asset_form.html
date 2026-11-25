@@ -1,0 +1,22 @@
+{% extends "web/base.html" %}
+{% block title %}{% if asset %}Editar{% else %}Registrar{% endif %} activo · CicloSec{% endblock %}
+{% block content %}
+  <a class="back-link" href="{% if asset %}{% url 'web-asset-detail' asset.pk %}{% else %}{% url 'assets' %}{% endif %}">← Volver a activos</a>
+  {% if asset %}
+    {% include "web/partials/page_heading.html" with eyebrow="Gestión de activos" title="Editar activo" description="Actualiza sus datos y la fuente autorizada." only %}
+  {% else %}
+    {% include "web/partials/page_heading.html" with eyebrow="Gestión de activos" title="Registrar activo" description="Añade únicamente repositorios o imágenes que estés autorizado a analizar." only %}
+    <nav class="choice-tabs" aria-label="Tipo de activo">
+      <a class="{% if kind == 'repository' %}is-selected{% endif %}" href="{% url 'asset-create' %}?kind=repository">Repositorio GitHub</a>
+      <a class="{% if kind == 'container_image' %}is-selected{% endif %}" href="{% url 'asset-create' %}?kind=container_image">Imagen local</a>
+    </nav>
+  {% endif %}
+  <form class="panel editor-form" method="post">
+    {% csrf_token %}
+    <h2>Datos del activo</h2>
+    <div class="form-grid">{% include "web/partials/form_fields.html" with form=asset_form only %}</div>
+    <h2>{% if kind == 'repository' %}Fuente GitHub{% else %}Imagen de contenedor{% endif %}</h2>
+    <div class="form-grid">{% include "web/partials/form_fields.html" with form=source_form only %}</div>
+    <div class="form-actions"><button class="button button--primary" type="submit">Guardar activo</button><a class="button button--secondary" href="{% if asset %}{% url 'web-asset-detail' asset.pk %}{% else %}{% url 'assets' %}{% endif %}">Cancelar</a></div>
+  </form>
+{% endblock %}

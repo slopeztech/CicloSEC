@@ -1,0 +1,56 @@
+{% extends "web/base.html" %}
+{% block title %}Hallazgo #{{ finding.pk }} · CicloSec{% endblock %}
+{% block content %}
+  <a class="back-link" href="{% url 'findings' %}">← Todos los hallazgos</a>
+  {% include "web/partials/page_heading.html" with eyebrow="Detalle del hallazgo" title=finding.external_id|default:finding.title|default:"Hallazgo" description="La afectación y la prioridad dependen de la evidencia disponible." only %}
+  <div class="detail-grid">
+    <section class="panel">
+      <h2>Resultado</h2>
+      <dl class="detail-list">
+        <div><dt>Activo</dt><dd><a href="{% url 'web-asset-detail' finding.asset_id %}">{{ finding.asset.name }}</a></dd></div>
+        <div><dt>Fuente del activo</dt><dd>{% include "web/partials/asset_source_status.html" with status=asset_source_status only %}</dd></div>
+        <div><dt>Escaneo</dt><dd><a href="{% url 'web-scan-detail' finding.scan_run_id %}">#{{ finding.scan_run_id }}</a></dd></div>
+        <div><dt>Fuente</dt><dd>{{ finding.get_source_display }}</dd></div>
+        <div><dt>Tipo</dt><dd>{{ finding.get_kind_display }}</dd></div>
+        <div><dt>Componente</dt><dd>{{ finding.package_name|default:"—" }} {{ finding.package_version }}</dd></div>
+        <div><dt>Afectación</dt><dd>{% include "web/partials/affected_status.html" with status=finding.affected_status only %}</dd></div>
+        <div><dt>Confianza</dt><dd>{{ finding.get_confidence_display }}</dd></div>
+        <div><dt>Versión corregida</dt><dd>{{ finding.fixed_version|default:"Desconocida" }}</dd></div>
+      </dl>
+      <p class="field-help">Este resultado es histórico; una fuente coincidente no demuestra que el hallazgo siga vigente.</p>
+    </section>
+    <section class="panel">
+      <h2>Riesgo explicado</h2>
+      {% if finding.risk_assessment %}
+        <p class="detail-score">{{ finding.risk_assessment.get_level_display }}{% if finding.risk_assessment.score is not None %} · {{ finding.risk_assessment.score }}/100{% endif %}</p>
+        <p class="detail-copy">{{ finding.risk_assessment.explanation }}</p>
+        <p class="field-help">Política: {{ finding.risk_assessment.policy_version }}</p>
+      {% else %}<p class="empty-state">Todavía no hay una evaluación de riesgo.</p>{% endif %}
+    </section>
+  </div>
+  {% if can_review %}
+    <section class="panel">
+      <h2>Decisión humana</h2>
+      <p class="field-help">La decisión no modifica el resultado técnico ni reemplaza la reevaluación automática.</p>
+      <form method="post" action="{% url 'review-finding' finding.pk %}">
+        {% csrf_token %}
+        {{ decision_form.as_p }}
+        <div class="form-actions">
+          <button class="button button--primary" type="submit">Registrar decisión</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+  <section class="panel">
+    <h2>Historial humano</h2>
+    {% if decision_events %}
+      <ul class="field-help">
+        {% for event in decision_events %}
+          <li>{{ event.created_at|date:"DATETIME_FORMAT" }} · {{ event.get_status_display }} · {{ event.actor.username }}{% if event.assignee %} · Responsable: {{ event.assignee.username }}{% endif %} · {{ event.reason }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">Todavía no hay decisiones humanas.</p>
+    {% endif %}
+  </section>
+{% endblock %}

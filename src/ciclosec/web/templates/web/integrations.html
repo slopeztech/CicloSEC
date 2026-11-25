@@ -1,0 +1,23 @@
+{% extends "web/base.html" %}
+{% block title %}API y MCP · CicloSec{% endblock %}
+{% block content %}
+  {% include "web/partials/page_heading.html" with eyebrow="Integraciones" title="API y MCP" description="Accede a los datos del sistema desde herramientas autorizadas." only %}
+  <div class="detail-grid">
+    <section class="panel">
+      <h2>API local</h2>
+      <p class="detail-copy">La API requiere autenticación y ofrece consultas de activos, escaneos, hallazgos y cobertura.</p>
+      <a class="endpoint-link" href="/api/assets/"><code>GET /api/assets/</code><span>↗</span></a>
+      <a class="endpoint-link" href="/api/findings/"><code>GET /api/findings/</code><span>↗</span></a>
+      <a class="endpoint-link" href="/api/scans/"><code>GET /api/scans/</code><span>↗</span></a>
+      <a class="endpoint-link" href="{% url 'api-dashboard' %}"><code>GET /api/dashboard/</code><span>↗</span></a>
+      <a class="button button--secondary api-doc-link" href="/api/docs/">Documentación del contrato</a>
+    </section>
+    <section class="panel">
+      <h2>Servidor MCP</h2>
+      <p class="detail-copy">Servidor local por stdio, de consulta por defecto; no ejecuta escaneos ni abre un puerto de red. La actualización de inteligencia requiere habilitación y autenticación de administrador.</p>
+      <p class="status {% if mcp_enabled %}status--current{% else %}status--disabled{% endif %}">{% if mcp_enabled %}Habilitado en la configuración{% else %}Deshabilitado en la configuración{% endif %}</p>
+      <p class="field-help">Habilítalo en la configuración local y arráncalo desde el directorio del proyecto:</p>
+      <pre class="code-block"><code>uv run ciclosec-mcp</code></pre>
+    </section>
+  </div>
+{% endblock %}

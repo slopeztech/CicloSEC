@@ -1,0 +1,32 @@
+<section class="panel activity-panel" aria-labelledby="scans-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Últimos {{ scan_rows|length }} de {{ summary.scans.total }}</p>
+      <h2 id="scans-title">Historial reciente</h2>
+    </div>
+    <a class="text-link" href="{% url 'history' %}">Ver todo <span aria-hidden="true">→</span></a>
+  </div>
+  <ul class="activity-list">
+    {% for scan in scan_rows %}
+      <li class="activity-item">
+        <span class="activity-marker activity-marker--{{ scan.status }}" aria-hidden="true">
+          {% if scan.status == "failed" %}×{% elif scan.status == "succeeded" %}✓{% else %}!{% endif %}
+        </span>
+        <div class="activity-item__content">
+          <div class="activity-item__heading">
+            <strong><a href="{% url 'web-scan-detail' scan.id %}">{{ scan.asset_name }}</a></strong>
+            <span class="status status--{{ scan.status }}">{{ scan.status_label }}</span>
+          </div>
+          <p>
+            {{ scan.finished_at|default:scan.created_at|date:"DATETIME_FORMAT" }}
+            · {{ scan.warning_count }} alertas
+            {% if scan.has_error %}· <span class="text-danger">Con error</span>{% endif %}
+          </p>
+        </div>
+      </li>
+    {% empty %}
+      <li class="empty-state">No hay escaneos registrados.</li>
+    {% endfor %}
+  </ul>
+  {% include "web/partials/pagination.html" with pagination=scan_pagination label="Paginación del historial de escaneos" only %}
+</section>

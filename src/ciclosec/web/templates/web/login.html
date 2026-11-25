@@ -1,0 +1,25 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'web/dashboard.css' %}">
+    <title>Iniciar sesión · CicloSec</title>
+  </head>
+  <body class="login-page">
+    <main class="login-card" id="main-content">
+      <h1><span class="brand-mark" aria-hidden="true">C</span> CicloSec</h1>
+      <p class="detail-copy">Inicia sesión para consultar el panel local.</p>
+      {% if form.errors %}
+        <div class="notice notice--error" role="alert">Usuario o contraseña no válidos.</div>
+      {% endif %}
+      <form method="post" class="login-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit">Iniciar sesión</button>
+      </form>
+    </main>
+  </body>
+</html>

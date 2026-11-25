@@ -1,0 +1,44 @@
+{
+  "results": [
+    {
+      "source": {
+        "path": "requirements.lock",
+        "type": "lockfile"
+      },
+      "packages": [
+        {
+          "package": {
+            "name": "Flask",
+            "version": "2.2.0",
+            "ecosystem": "PyPI"
+          },
+          "vulnerabilities": [
+            {
+              "id": "PYSEC-2026-1",
+              "aliases": ["CVE-2026-0001", "GHSA-1111-2222-3333"],
+              "summary": "Example package vulnerability",
+              "details": "A test vulnerability affecting Flask.",
+              "affected": [
+                {
+                  "package": {
+                    "name": "Flask",
+                    "ecosystem": "PyPI"
+                  },
+                  "ranges": [
+                    {
+                      "type": "ECOSYSTEM",
+                      "events": [
+                        {"introduced": "0"},
+                        {"fixed": "2.2.5"}
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

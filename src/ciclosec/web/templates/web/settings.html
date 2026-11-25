@@ -1,0 +1,77 @@
+{% extends "web/base.html" %}
+{% block title %}Configuración · CicloSec{% endblock %}
+{% block content %}
+  {% include "web/partials/page_heading.html" with eyebrow="Administración" title="Configuración" description="Opciones operativas accesibles únicamente a superadministradores." only %}
+  <section class="panel">
+    <h2>Estado de aplicación</h2>
+    <p>Revisión deseada: {{ revision }}.</p>
+    <ul class="field-help">
+      <li>Web: <strong>Desconocido</strong></li>
+      <li>Workers: <strong>Desconocido</strong></li>
+      <li>Beat: {% if beat_instances %}últimas señales abajo{% else %}<strong>Desconocido</strong>{% endif %}</li>
+      <li>MCP externo: <strong>Desconocido</strong></li>
+    </ul>
+    <h3>Señales observadas de Beat</h3>
+    {% if beat_instances %}
+      <ul class="field-help">
+        {% for item in beat_instances %}
+          <li><code>{{ item.instance.id }}</code> · revisión de arranque {{ item.instance.revision }} · última señal {{ item.instance.last_seen_at|date:"DATETIME_FORMAT" }} ·
+            {% if item.status == "matching" %}señal reciente, revisión coincidente{% elif item.status == "pending" %}señal reciente, revisión anterior: reinicio pendiente{% else %}estado desconocido{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}<p class="field-help">No hay señales registradas; el estado es desconocido.</p>{% endif %}
+    <p class="field-help">Estados calculados al cargar esta página; recárgala para actualizarlos. Se muestran hasta 50 señales. Una señal reciente solo confirma una iteración anterior del programador, no que siga activo ni que otras instancias estén actualizadas. Las instancias antiguas o sin señal, y otras instancias que no informan, permanecen desconocidas. La revisión identifica los overrides de arranque, no verifica que el YAML sea igual en todos los procesos.</p>
+    <p class="field-help">No se puede verificar qué versión usan web, workers o servidores MCP externos. Comprueba los trabajos en curso antes de reiniciar manualmente los procesos afectados. No inicies Beat sin revisar sus tareas programadas. MCP debe reiniciarse en su entorno de ejecución.</p>
+    <p class="field-help">Para revisar los servicios y la actividad del worker en Docker:</p>
+    <pre class="code-block"><code>docker compose ps
+docker compose exec worker celery -A ciclosec.project inspect active
+docker compose exec worker celery -A ciclosec.project inspect reserved</code></pre>
+    <p class="field-help">Si no hay trabajos activos ni pendientes y corresponde reiniciarlos: <code>docker compose restart web worker</code>. Comprueba también la cola y los escaneos en curso antes de hacerlo. Este comando no inicia Beat ni reinicia MCP externo.</p>
+    <p class="field-help">Los cambios no detienen procesos o solicitudes ya iniciados. Las opciones de idioma, cuentas y otras capacidades todavía no están disponibles en esta sección.</p>
+    <p class="field-help">Las notificaciones solo funcionan para canales ya configurados. Usar bases locales no impide toda comunicación de red.</p>
+  </section>
+  <section class="panel">
+    <h2>Opciones disponibles</h2>
+    <p class="field-help">Cada cambio requiere confirmación y queda registrado. Los valores efectivos combinan el YAML con las sobrescrituras persistentes; no introduzcas credenciales aquí.</p>
+    <div class="form-grid">
+      {% for option in options %}
+        <form class="editor-form" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="option" value="{{ option.key }}">
+          {% for field in option.form %}
+            {% if field.is_hidden %}{{ field }}{% else %}
+              <div class="form-field{% if field.field.widget.input_type == 'checkbox' %} form-field--check{% endif %}">
+                {{ field.label_tag }} {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+          <div class="form-actions"><button class="button button--primary" type="submit" aria-label="Guardar {{ option.form.value.label }}">Guardar cambio</button></div>
+        </form>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Programación de inteligencia</h2>
+    <p class="field-help">Estos controles solo modifican la programación que Beat carga al arrancar. Para aplicarlos hay que reiniciar manualmente Beat si está en ejecución; no lo inicies si estaba detenido. Una programación anterior puede seguir enviando trabajos hasta ese reinicio.</p>
+    <p class="field-help"><strong>Deshabilitar una programación no bloquea la sincronización manual</strong>, que solicita todos los proveedores, ni cancela trabajos en cola, en ejecución o reintentos. Habilitarla puede causar solicitudes a servicios externos cuando Beat esté activo. Un intervalo guardado no habilita por sí solo un proveedor.</p>
+    <div class="form-grid">
+      {% for option in provider_options %}
+        <form class="editor-form" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="option" value="{{ option.key }}">
+          {% for field in option.form %}
+            {% if field.is_hidden %}{{ field }}{% else %}
+              <div class="form-field{% if field.field.widget.input_type == 'checkbox' %} form-field--check{% endif %}">
+                {{ field.label_tag }} {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+          <div class="form-actions"><button class="button button--primary" type="submit" aria-label="Guardar {{ option.form.value.label }}">Guardar cambio</button></div>
+        </form>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

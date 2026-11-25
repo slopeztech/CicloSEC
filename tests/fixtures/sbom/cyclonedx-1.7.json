@@ -1,0 +1,43 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-01-01T00:00:00Z",
+    "component": {
+      "type": "application",
+      "bom-ref": "root-app",
+      "name": "sample-app"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg-flask",
+      "name": "Flask",
+      "version": "2.2.0",
+      "purl": "pkg:pypi/flask@2.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg-werkzeug",
+      "name": "Werkzeug",
+      "version": "2.2.0",
+      "purl": "pkg:pypi/werkzeug@2.2.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "root-app",
+      "dependsOn": ["pkg-flask"]
+    },
+    {
+      "ref": "pkg-flask",
+      "dependsOn": ["pkg-werkzeug"]
+    },
+    {
+      "ref": "pkg-werkzeug",
+      "dependsOn": []
+    }
+  ]
+}

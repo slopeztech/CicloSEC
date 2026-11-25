@@ -1,0 +1,57 @@
+<aside class="sidebar">
+  <a class="brand" href="{% url 'dashboard' %}" aria-label="CicloSec, panel">
+    <span class="brand-mark" aria-hidden="true">C</span>
+    <span class="brand-name">CicloSec</span>
+  </a>
+
+  <nav class="sidebar-nav" aria-label="Navegación principal">
+    <a class="nav-link{% if active_nav == 'dashboard' %} nav-link--active{% endif %}" href="{% url 'dashboard' %}" {% if active_nav == 'dashboard' %}aria-current="page"{% endif %} aria-label="Panel">
+      <svg class="icon" aria-hidden="true"><use href="#icon-dashboard"></use></svg>
+      <span class="nav-label">Panel</span>
+    </a>
+    <a class="nav-link{% if active_nav == 'assets' %} nav-link--active{% endif %}" href="{% url 'assets' %}" {% if active_nav == 'assets' %}aria-current="page"{% endif %} aria-label="Activos">
+      <svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>
+      <span class="nav-label">Activos</span>
+    </a>
+    <a class="nav-link{% if active_nav == 'findings' %} nav-link--active{% endif %}" href="{% url 'findings' %}" {% if active_nav == 'findings' %}aria-current="page"{% endif %} aria-label="Hallazgos">
+      <svg class="icon" aria-hidden="true"><use href="#icon-alert"></use></svg>
+      <span class="nav-label">Hallazgos</span>
+      {% if summary.findings.total %}
+        <span class="nav-badge">{{ summary.findings.total }}</span>
+      {% endif %}
+    </a>
+    <a class="nav-link{% if active_nav == 'sbom' %} nav-link--active{% endif %}" href="{% url 'sbom' %}" {% if active_nav == 'sbom' %}aria-current="page"{% endif %} aria-label="SBOM">
+      <svg class="icon" aria-hidden="true"><use href="#icon-layers"></use></svg>
+      <span class="nav-label">SBOM</span>
+    </a>
+    <a class="nav-link{% if active_nav == 'history' %} nav-link--active{% endif %}" href="{% url 'history' %}" {% if active_nav == 'history' %}aria-current="page"{% endif %} aria-label="Historial">
+      <svg class="icon" aria-hidden="true"><use href="#icon-history"></use></svg>
+      <span class="nav-label">Historial</span>
+    </a>
+    <a class="nav-link{% if active_nav == 'intelligence' %} nav-link--active{% endif %}" href="{% url 'intelligence' %}" {% if active_nav == 'intelligence' %}aria-current="page"{% endif %} aria-label="Inteligencia">
+      <svg class="icon" aria-hidden="true"><use href="#icon-intelligence"></use></svg>
+      <span class="nav-label">Inteligencia</span>
+    </a>
+    <a class="nav-link{% if active_nav == 'integrations' %} nav-link--active{% endif %}" href="{% url 'integrations' %}" {% if active_nav == 'integrations' %}aria-current="page"{% endif %} aria-label="API y MCP">
+      <svg class="icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+      <span class="nav-label">API y MCP</span>
+    </a>
+    {% if user.is_superuser %}
+      <a class="nav-link{% if active_nav == 'settings' %} nav-link--active{% endif %}" href="{% url 'settings' %}" {% if active_nav == 'settings' %}aria-current="page"{% endif %}>
+        <svg class="icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+        <span class="nav-label">Configuración</span>
+      </a>
+    {% endif %}
+  </nav>
+
+  <div class="sidebar-bottom">
+    <p class="sidebar-note">Solo activos autorizados. Datos y escaneos locales.</p>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="nav-link logout-button" type="submit" aria-label="Cerrar sesión">
+        <svg class="icon" aria-hidden="true"><use href="#icon-logout"></use></svg>
+        <span class="nav-label">Cerrar sesión</span>
+      </button>
+    </form>
+  </div>
+</aside>

@@ -1,0 +1,70 @@
+application:
+  name: CicloSec
+  environment: local
+  timezone: Europe/Madrid
+
+database:
+  url_env: CICLOSEC_DATABASE_URL
+
+tasks:
+  broker_url_env: CICLOSEC_REDIS_URL
+  result_backend_url_env: CICLOSEC_REDIS_URL
+
+scanning:
+  schedules:
+    intelligence_default: 6h
+    intelligence_full_reconciliation: 7d
+    # Intervals apply only to assets explicitly authorized by an administrator.
+    repositories: 24h
+    container_images: 24h
+  execution:
+    timeout_seconds: 900
+    max_concurrent_scans: 2
+    max_queued_scans: 50
+    allow_on_demand: false
+    # Explicitly authorize repository scanners that may access the network.
+    allow_repository_scanners_with_network: false
+    # Use preloaded OSV/Trivy databases without scanner-side update/API requests.
+    repository_scanner_use_local_databases: false
+    repository_scanner_osv_db_cache_directory: null
+    repository_scanner_trivy_cache_directory: null
+
+github:
+  enabled: true
+  token_env: CICLOSEC_GITHUB_TOKEN
+  # Register repository assets through the authenticated API.
+  # This list does not bootstrap database records.
+  repositories: []
+
+docker:
+  enabled: false
+  allow_local_daemon: false
+  images:
+    - reference: nginx:1.27
+
+infrastructure:
+  enabled: false
+  servers: []
+
+intelligence:
+  stale_after: 24h
+  providers:
+    nvd: { enabled: true, refresh_interval: 6h }
+    osv: { enabled: true, refresh_interval: 6h }
+    github_advisories: { enabled: true, refresh_interval: 6h }
+    cisa_kev: { enabled: true, refresh_interval: 1h, priority: true }
+    epss: { enabled: true }
+
+notifications:
+  enabled: true
+  channels:
+    - type: console
+
+mcp:
+  enabled: false
+  transport: stdio
+  allow_run_scan: false
+  # Requires explicit staff credentials in the MCP server environment.
+  allow_intelligence_sync: false
+  # Requires staff credentials and explicit confirmation for human finding decisions.
+  allow_finding_decisions: false

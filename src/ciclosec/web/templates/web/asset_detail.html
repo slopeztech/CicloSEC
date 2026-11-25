@@ -1,0 +1,83 @@
+{% extends "web/base.html" %}
+{% block title %}{{ asset.name }} · Activos · CicloSec{% endblock %}
+{% block content %}
+  <a class="back-link" href="{% url 'assets' %}">← Todos los activos</a>
+  {% url 'asset-edit' asset.pk as edit_url %}
+  {% include "web/partials/page_heading.html" with eyebrow="Detalle del activo" title=asset.name description="Configuración, inventario y actividad de este activo." action_url=edit_url action_label="Editar activo" only %}
+  <div class="detail-grid">
+    <section class="panel">
+      <h2>Información</h2>
+      <dl class="detail-list">
+        <div><dt>Tipo</dt><dd>{{ asset.get_kind_display }}</dd></div>
+        <div><dt>Entorno</dt><dd>{{ asset.get_environment_display }}</dd></div>
+        <div><dt>Exposición</dt><dd>{{ asset.get_exposure_display }}</dd></div>
+        <div><dt>Estado</dt><dd>{% if asset.enabled %}Habilitado{% else %}Deshabilitado{% endif %}</dd></div>
+        {% if asset.kind == 'repository' and asset.repository %}
+          <div><dt>Repositorio</dt><dd>{{ asset.repository.owner }}/{{ asset.repository.repository_name }}@{{ asset.repository.ref }}</dd></div>
+        {% elif asset.kind == 'container_image' and asset.container_image %}
+          <div><dt>Imagen</dt><dd>{{ asset.container_image.image_reference }}</dd></div>
+        {% else %}
+          <div><dt>Fuente</dt><dd>No configurada</dd></div>
+        {% endif %}
+      </dl>
+      {% if asset.kind == 'repository' %}
+        {% include "web/partials/repository_network_notice.html" with repository_scanner_use_local_databases=repository_scanner_use_local_databases only %}
+      {% endif %}
+      <div class="form-actions">
+        <a class="button button--secondary" href="{% url 'sbom' %}?asset={{ asset.pk }}">Ver SBOM</a>
+        <a class="button button--quiet" href="{% url 'findings' %}?asset_id={{ asset.pk }}">Ver hallazgos</a>
+        {% if can_scan %}
+          <form method="post" action="{% url 'request-scan' asset.pk %}">
+            {% csrf_token %}<input type="hidden" name="asset" value="{{ asset.pk }}">
+            <button class="button button--primary" type="submit">Solicitar escaneo</button>
+          </form>
+        {% else %}
+          <span class="field-help">{% if not manual_scans_enabled %}Escaneos bajo demanda deshabilitados.{% elif not asset.enabled %}Activo deshabilitado.{% elif active_scan %}Ya hay un escaneo activo: <a href="{% url 'web-scan-detail' active_scan.pk %}">escaneo #{{ active_scan.pk }}</a>.{% elif not scanner_network_authorized %}Autorización de red para escáneres de repositorios deshabilitada en la configuración de esta interfaz.{% else %}La fuente no está configurada o autorizada para escaneo.{% endif %}</span>
+        {% endif %}
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Programación de escaneos</h2>
+      <p>Estado: {% if scan_schedule.status == 'enabled' %}Habilitada{% elif scan_schedule.status == 'paused' %}Pausada{% else %}Deshabilitada{% endif %}.</p>
+      <p class="field-help">Intervalo: {{ schedule_interval }} desde la finalización. Requiere Beat y un worker activos. Los resultados parciales o fallidos y los cambios de fuente pausan la programación.</p>
+      {% if scan_schedule.status == 'paused' %}
+        <p class="field-help">{% if scan_schedule.reason == 'scan_failed_or_partial' %}Un escaneo fue fallido o parcial; revisa el historial.{% elif scan_schedule.reason == 'scan_cancelled' %}El último escaneo programado se canceló.{% elif scan_schedule.reason == 'repository_network_disabled' %}Autorización de red para escáneres de repositorios deshabilitada en el proceso de programación.{% elif scan_schedule.reason == 'source_changed' %}La fuente cambió y requiere nueva autorización.{% elif scan_schedule.reason == 'invalid_source' %}El activo o su fuente no están habilitados o configurados para escaneo.{% else %}La programación tiene un estado inconsistente y requiere revisión.{% endif %}</p>
+      {% endif %}
+      {% if scan_schedule.last_scan_id %}<p><a href="{% url 'web-scan-detail' scan_schedule.last_scan_id %}">Último escaneo programado #{{ scan_schedule.last_scan_id }}</a></p>{% endif %}
+      {% if user.is_staff %}
+        {% if scan_schedule.status != 'enabled' and not scanner_network_authorized %}
+          <p class="field-help">Autorización de red para escáneres de repositorios deshabilitada en la configuración de esta interfaz.</p>
+        {% elif scan_schedule.status != 'enabled' and scan_schedule.source %}
+          <form method="post" action="{% url 'change-scan-schedule' asset.pk %}">
+            {% csrf_token %}<input type="hidden" name="enabled" value="true">
+            <input type="hidden" name="source_fingerprint" value="{{ scan_schedule.source_fingerprint }}">
+            <p class="field-help">Fuente a autorizar: {% if scan_schedule.source.kind == 'repository' %}{{ scan_schedule.source.provider }} · {{ scan_schedule.source.owner }}/{{ scan_schedule.source.repository }}@{{ scan_schedule.source.ref }} · credencial: {{ scan_schedule.source.credential_env|default:"predeterminada" }}{% else %}{{ scan_schedule.source.reference }}{% endif %}</p>
+            <label><input type="checkbox" name="confirm" value="true" required> Autorizo esta fuente y un primer escaneo inmediato.</label>
+            <button class="button button--secondary" type="submit">{% if scan_schedule.status == 'paused' %}Reanudar programación{% else %}Habilitar programación{% endif %}</button>
+          </form>
+        {% elif scan_schedule.status != 'enabled' %}
+          <p class="field-help">Configura y habilita una fuente válida antes de autorizar la programación.</p>
+        {% endif %}
+        {% if scan_schedule.status != 'disabled' %}
+          <form method="post" action="{% url 'change-scan-schedule' asset.pk %}">
+            {% csrf_token %}<input type="hidden" name="enabled" value="false">
+            <button class="button button--quiet" type="submit">Deshabilitar programación</button>
+          </form>
+          <p class="field-help">Deshabilitar no cancela trabajos en cola ni en ejecución.</p>
+        {% endif %}
+      {% endif %}
+    </section>
+    <section class="panel">
+      <h2>Actividad reciente</h2>
+      <ul class="activity-list">
+        {% for scan in scans %}
+          <li class="activity-item"><div class="activity-item__content">
+            <div class="activity-item__heading"><strong><a href="{% url 'web-scan-detail' scan.pk %}">Escaneo #{{ scan.pk }}</a></strong><span class="status status--{{ scan.status }}">{% include "web/partials/scan_status.html" with status=scan.status only %}</span></div>
+            <p>{{ scan.created_at|date:"DATETIME_FORMAT" }}</p>
+          </div></li>
+        {% empty %}<li class="empty-state">Este activo todavía no tiene escaneos.</li>{% endfor %}
+      </ul>
+      <a class="text-link" href="{% url 'history' %}?asset_id={{ asset.pk }}">Ver historial del activo →</a>
+    </section>
+  </div>
+{% endblock %}

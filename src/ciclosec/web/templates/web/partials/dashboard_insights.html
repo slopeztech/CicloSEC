@@ -1,0 +1,39 @@
+<div class="dashboard-insights">
+  <section class="panel insight-panel" aria-labelledby="urgent-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Próximos pasos</p>
+        <h2 id="urgent-title">Tareas urgentes</h2>
+      </div>
+      <a class="text-link" href="{% url 'findings' %}?sort=risk">Ver prioridades <span aria-hidden="true">→</span></a>
+    </div>
+    <p class="field-help">Hasta cinco hallazgos de riesgo alto o crítico sin cierre, aceptación de riesgo ni falso positivo. Se aplican los filtros del panel. Son resultados históricos: verifica su vigencia antes de actuar.</p>
+    <ul class="insight-list">
+      {% for finding in urgent_findings %}
+        <li>
+          <a href="{% url 'web-finding-detail' finding.pk %}">{{ finding.external_id|default:finding.title|default:"Ver hallazgo" }}</a>
+          <span>{{ finding.asset.name }} · Riesgo {% if finding.risk_assessment.level == "critical" %}crítico{% else %}alto{% endif %}{% if finding.risk_assessment.score is not None %} ({{ finding.risk_assessment.score }}/100){% endif %}</span>
+          <span>Afectación: {% include "web/partials/affected_status.html" with status=finding.affected_status only %}</span>
+        </li>
+      {% empty %}
+        <li class="empty-state">No hay hallazgos que cumplan este criterio. Esto no significa que no haya otros riesgos.</li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="panel insight-panel" aria-labelledby="recent-cves-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Inteligencia local</p>
+        <h2 id="recent-cves-title">CVE publicados recientemente</h2>
+      </div>
+      <a class="text-link" href="{% url 'intelligence' %}">Ver fuentes <span aria-hidden="true">→</span></a>
+    </div>
+    <p class="field-help">Hasta cinco por grupo, ordenados por fecha de publicación conocida; cuando falta la fecha propia de un CVE agrupado se usa la de su grupo. Dependen de las fuentes sincronizadas y no representan todos los CVE publicados. Los filtros del panel no se aplican aquí.</p>
+    <h3>Relacionados con activos</h3>
+    <p class="field-help">Existe al menos un hallazgo vinculado, también histórico; no implica afectación actual.</p>
+    {% include "web/partials/recent_cve_list.html" with cves=recent_related_cves related=True only %}
+    <h3>Todos los CVE de la inteligencia local</h3>
+    <p class="field-help">Pueden incluir CVE relacionados con activos. La ausencia de un vínculo no garantiza que no estén afectados.</p>
+    {% include "web/partials/recent_cve_list.html" with cves=recent_local_cves related=False only %}
+  </section>
+</div>

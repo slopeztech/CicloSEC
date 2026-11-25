@@ -1,0 +1,32 @@
+{
+  "title": "CISA Catalog of Known Exploited Vulnerabilities",
+  "catalogVersion": "2026.11.20",
+  "dateReleased": "2026-11-20T17:48:39.1516Z",
+  "count": 2,
+  "vulnerabilities": [
+    {
+      "cveID": "CVE-2026-0001",
+      "vendorProject": "Example Vendor",
+      "product": "Example Product",
+      "vulnerabilityName": "Example remote code execution",
+      "dateAdded": "2026-11-20",
+      "shortDescription": "An example vulnerability added to the catalog.",
+      "requiredAction": "Apply the vendor update.",
+      "dueDate": "2026-11-27",
+      "knownRansomwareCampaignUse": "Unknown",
+      "notes": "https://example.test/advisory"
+    },
+    {
+      "cveID": "CVE-2026-0005",
+      "vendorProject": "Second Vendor",
+      "product": "Second Product",
+      "vulnerabilityName": "Example authentication bypass",
+      "dateAdded": "2026-11-18",
+      "shortDescription": "A second example vulnerability.",
+      "requiredAction": "Apply the vendor update.",
+      "dueDate": "2026-12-01",
+      "knownRansomwareCampaignUse": "Unknown",
+      "notes": "Vendor advisory not provided."
+    }
+  ]
+}

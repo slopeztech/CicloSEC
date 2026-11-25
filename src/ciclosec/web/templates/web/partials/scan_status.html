@@ -1,0 +1,1 @@
+{% if status == 'queued' %}En cola{% elif status == 'running' %}En curso{% elif status == 'succeeded' %}Correcto{% elif status == 'partial' %}Parcial{% elif status == 'failed' %}Fallido{% elif status == 'cancelled' %}Cancelado{% else %}{{ status }}{% endif %}

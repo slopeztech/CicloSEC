@@ -1,0 +1,40 @@
+<section class="overview-grid" aria-label="Resumen de cobertura">
+  <div class="hero-card">
+    <p class="eyebrow">Seguridad de aplicaciones</p>
+    <h1>Panel de <span>cobertura</span></h1>
+    <p class="hero-copy">
+      Repositorios, imágenes Docker, inventarios SBOM, vulnerabilidades
+      correlacionadas y riesgo explicado, en un solo lugar.
+    </p>
+    <div class="hero-actions">
+      <a class="button button--primary" href="#assets">
+        <span aria-hidden="true">+</span>
+        {% if manual_scans_enabled %}Escanear un activo{% else %}Ver activos{% endif %}
+      </a>
+      <a class="button button--secondary" href="{% url 'api-dashboard' %}">
+        <svg class="icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+        Ver JSON
+      </a>
+    </div>
+  </div>
+
+  <article class="coverage-card" aria-labelledby="coverage-meter-title">
+    <h2 id="coverage-meter-title">Cobertura efectiva</h2>
+    <div
+      class="coverage-ring"
+      role="img"
+      aria-label="{{ coverage_percent }} por ciento de activos habilitados con escaneo reciente"
+      style="--coverage: {{ coverage_percent }}%"
+    >
+      <div class="coverage-ring__center">
+        <strong>{{ coverage_percent }}%</strong>
+        <span>reciente</span>
+      </div>
+    </div>
+    <p class="coverage-card__summary">
+      {{ summary.coverage.counts.current }} de {{ summary.coverage.enabled_total }}
+      activos habilitados
+    </p>
+    <p class="coverage-card__hint">Escaneos completos dentro de su ventana de frescura</p>
+  </article>
+</section>

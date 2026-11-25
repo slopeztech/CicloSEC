@@ -1,0 +1,33 @@
+{% extends "web/base.html" %}
+{% block title %}Hallazgos · CicloSec{% endblock %}
+{% block content %}
+  {% include "web/partials/page_heading.html" with eyebrow="Análisis" title="Hallazgos" description="Explora los resultados y su estado de afectación. Un hallazgo pendiente no es una vulnerabilidad confirmada." only %}
+  <section class="panel data-panel">
+    <form class="filter-form" method="get">
+      {% include "web/partials/form_fields.html" with form=form only %}
+      <button class="button button--primary" type="submit">Filtrar</button>
+      <a class="button button--quiet" href="{% url 'findings' %}">Limpiar</a>
+    </form>
+    <p class="panel-subtitle">{{ page.paginator.count }} hallazgos encontrados.</p>
+    <p class="field-help">Incluye resultados históricos. Una fuente coincidente no demuestra que un hallazgo siga vigente.</p>
+    <p class="field-help">La prioridad ordena por la puntuación de riesgo (0–100), de mayor a menor; los hallazgos sin puntuación aparecen al final. La severidad describe la vulnerabilidad; el riesgo también considera el contexto del activo y la afectación.</p>
+    <details class="context-help">
+      <summary>Cómo interpretar la afectación</summary>
+      <p>Confirmada: existe evidencia de afectación. Potencial: hay indicios, pero no confirmación. Pendiente de verificar: falta información suficiente. No afectada y no aplicable indican que la evaluación no considera afectado el componente o aplicable el aviso.</p>
+      <p>Una puntuación desconocida no equivale a riesgo cero. Abre el hallazgo para consultar la explicación y la evidencia disponibles.</p>
+    </details>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Activo</th><th>Fuente del activo</th><th>Identificador</th><th>Componente</th><th>Severidad</th><th>Afectación</th><th>Riesgo</th></tr></thead>
+      <tbody>{% for row in finding_rows %}{% with finding=row.finding %}<tr>
+        <td><a href="{% url 'web-asset-detail' finding.asset_id %}">{{ finding.asset.name }}</a></td>
+        <td>{% include "web/partials/asset_source_status.html" with status=row.asset_source_status only %}</td>
+        <td><a href="{% url 'web-finding-detail' finding.pk %}">{{ finding.external_id|default:finding.title|default:"Ver hallazgo" }}</a></td>
+        <td>{{ finding.package_name|default:"—" }} {{ finding.package_version }}</td>
+        <td><span class="severity-badge severity-badge--{{ finding.severity|default:'unknown'|lower }}">{{ finding.severity|default:"Sin clasificar" }}</span></td>
+        <td>{% include "web/partials/affected_status.html" with status=finding.affected_status only %}</td>
+        <td>{% if finding.risk_assessment and finding.risk_assessment.score is not None %}{% if finding.risk_assessment.level == "critical" %}Crítico{% elif finding.risk_assessment.level == "high" %}Alto{% elif finding.risk_assessment.level == "medium" %}Medio{% elif finding.risk_assessment.level == "low" %}Bajo{% elif finding.risk_assessment.level == "informational" %}Informativo{% else %}Desconocido{% endif %} · {{ finding.risk_assessment.score }}{% else %}Desconocido · sin puntuación{% endif %}</td>
+      </tr>{% endwith %}{% empty %}<tr><td class="empty-state" colspan="7">No hay hallazgos con estos filtros.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% include "web/partials/pagination.html" with pagination=pagination label="Paginación de hallazgos" only %}
+  </section>
+{% endblock %}

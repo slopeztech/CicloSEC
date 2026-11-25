@@ -1,0 +1,42 @@
+<section class="panel data-panel findings-panel" id="findings" aria-labelledby="findings-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Mostrando {{ finding_rows|length }} de {{ summary.findings.total }}</p>
+      <h2 id="findings-title">Hallazgos recientes</h2>
+    </div>
+    <a class="text-link" href="{% url 'findings' %}">Ver hallazgos <span aria-hidden="true">→</span></a>
+  </div>
+  <p class="field-help">Incluye resultados históricos; una fuente coincidente no garantiza que sigan vigentes.</p>
+  <div class="table-wrap">
+    <table class="data-table findings-table">
+      <thead>
+        <tr>
+          <th>Activo</th><th>Fuente del activo</th><th>Vulnerabilidad</th><th>Componente</th>
+          <th>Severidad</th><th>Afectación</th><th>Riesgo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for finding in finding_rows %}
+          <tr>
+            <td class="asset-name">{{ finding.asset_name }}</td>
+            <td>{% include "web/partials/asset_source_status.html" with status=finding.asset_source_status only %}</td>
+            <td><a href="{% url 'web-finding-detail' finding.id %}"><code>{{ finding.canonical_id|default:finding.external_id }}</code></a></td>
+            <td>{{ finding.package_name }}{% if finding.package_version %} {{ finding.package_version }}{% endif %}</td>
+            <td><span class="severity-badge severity-badge--{{ finding.severity|default:'unknown'|lower }}">{{ finding.severity|default:"—" }}</span></td>
+            <td>{{ finding.affected_status_label }}</td>
+            <td>
+              {% if finding.risk_assessment and finding.risk_assessment.score is not None %}
+                {% if finding.risk_assessment.level == "critical" %}Crítico{% elif finding.risk_assessment.level == "high" %}Alto{% elif finding.risk_assessment.level == "medium" %}Medio{% elif finding.risk_assessment.level == "low" %}Bajo{% elif finding.risk_assessment.level == "informational" %}Informativo{% else %}Desconocido{% endif %} · {{ finding.risk_assessment.score }}
+              {% else %}
+                Desconocido · sin puntuación
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td class="empty-state" colspan="7">No hay hallazgos que mostrar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "web/partials/pagination.html" with pagination=finding_pagination label="Paginación de hallazgos" only %}
+</section>
